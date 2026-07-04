@@ -8,9 +8,10 @@
 body{background:#0a0a12;color:#e0e0ff;font-family:sans-serif;text-align:center;margin:0;padding:10px;user-select:none;-webkit-user-select:none;}
 h1{margin:0;font-size:20px;color:#00d2ff;}
 canvas{background:#020208;border:2px solid #00d2ff;display:block;margin:5px auto;max-width:100%;height:auto;border-radius:8px;}
-.controller{display:flex;justify-content:space-between;max-width:360px;margin:5px auto;gap:10px;}
-.ctrl-btn{flex:1;height:50px;background:rgba(255,255,255,0.05);border:1px solid #00d2ff;color:#00d2ff;font-size:22px;border-radius:12px;touch-action:manipulation;}
-.emote-btn{font-size:18px;padding:5px 12px;margin:0 3px;border-radius:8px;background:#151525;border:1px solid #444;color:white;}
+.controller{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:5px;max-width:240px;margin:5px auto;}
+.ctrl-btn{height:45px;background:rgba(255,255,255,0.05);border:1px solid #00d2ff;color:#00d2ff;font-size:20px;border-radius:8px;touch-action:manipulation;}
+.emote-container{margin:5px 0;}
+.emote-btn{font-size:18px;padding:3px 10px;margin:0 3px;border-radius:8px;background:#151525;border:1px solid #444;color:white;}
 .ui-container{display:flex;justify-content:center;gap:10px;max-width:400px;margin:5px auto;}
 .panel{background:#111122;border:1px solid #333;padding:5px;border-radius:8px;width:48%;box-sizing:border-box;}
 h3{margin:0;font-size:12px;color:#aaa;}
@@ -23,143 +24,69 @@ button{margin-top:4px;width:100%;padding:4px;background:#22223b;color:#fff;borde
 <div>SURVIVORS: <span id="aliveCount" style="color:#ff4757;font-size:20px;font-weight:bold;">100</span> / 100</div>
 <canvas id="gameCanvas" width="400" height="430"></canvas>
 <div class="controller">
-<button class="ctrl-btn" id="bL">◀</button>
-<button class="ctrl-btn" id="bR">▶</button>
+<div></div><button class="ctrl-btn" id="bU">▲</button><div></div>
+<button class="ctrl-btn" id="bL">◀</button><button class="ctrl-btn" id="bD">▼</button><button class="ctrl-btn" id="bR">▶</button>
 </div>
-<div style="margin:5px 0;">
+<div class="emote-container">
 <button class="emote-btn" onclick="sendEmote('🔥')">🔥</button>
 <button class="emote-btn" onclick="sendEmote('👍')">👍</button>
 <button class="emote-btn" onclick="sendEmote('😀')">😀</button>
 </div>
 <div class="ui-container">
-<div class="panel">
-<h3>Save</h3>
-<input type="text" id="outC" readonly placeholder="ーーー">
-<button onclick="expS()">生成</button>
-</div>
-<div class="panel">
-<h3>Load</h3>
-<input type="text" id="inC" placeholder="貼付">
-<button onclick="impS()">ロード</button>
-</div>
+<div class="panel"><h3>Save</h3><input type="text" id="outC" readonly placeholder="ーーー"><button onclick="expS()">生成</button></div>
+<div class="panel"><h3>Load</h3><input type="text" id="inC" placeholder="貼付"><button onclick="impS()">ロード</button></div>
 </div>
 <script>
-const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");
-let score=0,isGameOver=false,isCheatMode=false;
+const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");let score=0,isGameOver=false,isCheatMode=false;
 const player={x:185,y:370,size:28,speed:5},visibleBots=[],emotes=[],meteors=[],meteorSpeed=3.5;
-for(let i=0;i<105;i++)visibleBots.push({id:i,x:Math.random()*370,y:370,targetX:Math.random()*370,speed:1+Math.random()*2.5});
-let botSurvivalRates=[];
-for(let i=0;i<99;i++)botSurvivalRates.push(Math.random()*0.005+0.002);
-const controls={left:false,right:false};
-window.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")controls.left=true;if(e.key==="ArrowRight")controls.right=true;});
-window.addEventListener("keyup",e=>{if(e.key==="ArrowLeft")controls.left=false;if(e.key==="ArrowRight")controls.right=false;});
-const bL=document.getElementById("bL"),bR=document.getElementById("bR");
-bL.addEventListener("touchstart",e=>{e.preventDefault();controls.left=true;});
-bL.addEventListener("touchend",()=>controls.left=false);
-bL.addEventListener("mousedown",()=>controls.left=true);
-bL.addEventListener("mouseup",()=>controls.left=false);
-bR.addEventListener("touchstart",e=>{e.preventDefault();controls.right=true;});
-bR.addEventListener("touchend",()=>controls.right=false);
-bR.addEventListener("mousedown",()=>controls.right=true);
-bR.addEventListener("mouseup",()=>controls.right=false);
+for(let i=0;i<15;i++)visibleBots.push({id:i,x:Math.random()*370,y:370,targetX:Math.random()*370,targetY:370,speed:1+Math.random()*2});
+let botSurvivalRates=[];for(let i=0;i<99;i++)botSurvivalRates.push(Math.random()*0.005+0.002);const controls={left:false,right:false,up:false,down:false};
+window.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")controls.left=true;if(e.key==="ArrowRight")controls.right=true;if(e.key==="ArrowUp")controls.up=true;if(e.key==="ArrowDown")controls.down=true;});
+window.addEventListener("keyup",e=>{if(e.key==="ArrowLeft")controls.left=false;if(e.key==="ArrowRight")controls.right=false;if(e.key==="ArrowUp")controls.up=false;if(e.key==="ArrowDown")controls.down=false;});
+const bindT=(id,k)=>{const b=document.getElementById(id);b.addEventListener("touchstart",e=>{e.preventDefault();controls[k]=true;});b.addEventListener("touchend",()=>controls[k]=false);b.addEventListener("mousedown",()=>controls[k]=true);b.addEventListener("mouseup",()=>controls[k]=false);};
+bindT("bL","left");bindT("bR","right");bindT("bU","up");bindT("bD","down");
 function gameLoop(){if(!isGameOver){updateGame();drawGame();requestAnimationFrame(gameLoop);}}
 function sendEmote(emoji){if(isGameOver)return;emotes.push({text:emoji,x:player.x+player.size/2,y:player.y-10,timer:60});}
 function updateGame(){
 score++;
-if(controls.left&&player.x > 0)player.x-=player.speed;
-if(controls.right&&player.x < canvas.width-player.size)player.x+=player.speed;
+if(controls.left&&player.x>0)player.x-=player.speed;if(controls.right&&player.x<canvas.width-player.size)player.x+=player.speed;
+if(controls.up&&player.y>0)player.y-=player.speed;if(controls.down&&player.y<canvas.height-player.size)player.y+=player.speed;
 for(let b of visibleBots){
-if(Math.abs(b.x-b.targetX)<5)b.targetX=Math.random()*(canvas.width-player.size);
-if(b.x<b.targetX)b.x+=b.speed;
-if(b.x>b.targetX)b.x-=b.speed;
+if(Math.abs(b.x-b.targetX)<5){b.targetX=Math.random()*(canvas.width-player.size);b.targetY=Math.random()*(canvas.height-player.size);}
+if(b.x<b.targetX)b.x+=b.speed;if(b.x>b.targetX)b.x-=b.speed;if(b.y<b.targetY)b.y+=b.speed;if(b.y>b.targetY)b.y-=b.speed;
 }
 if(Math.random()<0.025)meteors.push({x:Math.random()*(canvas.width-20)+10,y:-20,radius:5+Math.random()*5});
 for(let i=meteors.length-1;i>=0;i--){
 meteors[i].y+=meteorSpeed;
 if(!isCheatMode){
 let dX=Math.abs(meteors[i].x-(player.x+player.size/2)),dY=Math.abs(meteors[i].y-(player.y+player.size/2));
-if(dX<(player.size/2+meteors[i].radius)&&dY<(player.size/2+meteors[i].radius)){
-isGameOver=true;
-alert("💥ゲームオーバー！\nSCORE: "+score);
-}
+if(dX<(player.size/2+meteors[i].radius)&&dY<(player.size/2+meteors[i].radius)){isGameOver=true;alert("💥ゲームオーバー！\nSCORE: "+score);}
 }
 if(meteors[i].y>canvas.height+20)meteors.splice(i,1);
 }
-let currentAlive=1;
-for(let i=0;i<botSurvivalRates.length;i++){
-if(Math.random()<botSurvivalRates[i]*(1+score*0.0005)){
-botSurvivalRates.splice(i,1);
-i--;
-}else{
-currentAlive++;
-if(Math.random()<0.0001&&visibleBots.length>0){
-const tB=visibleBots[Math.floor(Math.random()*visibleBots.length)];
-emotes.push({text:['🔥','👍','😀'][Math.floor(Math.random()*3)],x:tB.x+player.size/2,y:tB.y-10,timer:45});
+let currentAlive=1;for(let i=0;i<botSurvivalRates.length;i++){
+if(Math.random()<botSurvivalRates[i]*(1+score*0.0005)){botSurvivalRates.splice(i,1);i--;}
+else{currentAlive++;if(Math.random()<0.0005&&visibleBots.length>0){const tB=visibleBots[Math.floor(Math.random()*visibleBots.length)];emotes.push({text:['🔥','👍','😀'][Math.floor(Math.random()*3)],x:tB.x+player.size/2,y:tB.y-10,timer:45});}}
 }
-}
-}
-let targetV=Math.floor((currentAlive/100)*105);
-while(visibleBots.length>targetV&&visibleBots.length>0)visibleBots.pop();
-document.getElementById("aliveCount").innerText=currentAlive;
-for(let i=emotes.length-1;i>=0;i--){
-emotes[i].timer--;
-emotes[i].y-=0.6;
-if(emotes[i].timer<=0)emotes.splice(i,1);
-}
+while(visibleBots.length>currentAlive-1&&visibleBots.length>0)visibleBots.pop();document.getElementById("aliveCount").innerText=currentAlive;
+for(let i=emotes.length-1;i>=0;i--){emotes[i].timer--;emotes[i].y-=0.6;if(emotes[i].timer<=0)emotes.splice(i,1);}
 }
 function drawGame(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-if(isCheatMode){ctx.fillStyle="rgba(0,255,150,0.08)";ctx.fillRect(0,0,canvas.width,canvas.height);}
-ctx.fillStyle="rgba(255,255,255,0.08)";
-for(const b of visibleBots)ctx.fillRect(b.x,b.y,player.size,player.size);
-ctx.fillStyle=isCheatMode?"#00ffcc":"#00d2ff";
-ctx.fillRect(player.x,player.y,player.size,player.size);
-ctx.strokeStyle=isCheatMode?"#00ff00":"#ffffff";
-ctx.lineWidth=2;
-ctx.strokeRect(player.x,player.y,player.size,player.size);
-for(const m of meteors){
-ctx.beginPath();
-ctx.arc(m.x,m.y,m.radius,0,Math.PI*2);
-ctx.fillStyle="#ff4757";
-ctx.fill();
-ctx.strokeStyle="#ff6b81";
-ctx.lineWidth=1;
-ctx.stroke();
+ctx.clearRect(0,0,canvas.width,canvas.height);if(isCheatMode){ctx.fillStyle="rgba(0,255,150,0.08)";ctx.fillRect(0,0,canvas.width,canvas.height);}
+ctx.fillStyle="rgba(255,255,255,0.15)";for(const b of visibleBots)ctx.fillRect(b.x,b.y,player.size,player.size);
+ctx.fillStyle=isCheatMode?"#00ffcc":"#00d2ff";ctx.fillRect(player.x,player.y,player.size,player.size);ctx.strokeStyle=isCheatMode?"#00ff00":"#ffffff";ctx.lineWidth=2;ctx.strokeRect(player.x,player.y,player.size,player.size);
+for(const m of meteors){ctx.beginPath();ctx.arc(m.x,m.y,m.radius,0,Math.PI*2);ctx.fillStyle="#ff4757";ctx.fill();ctx.strokeStyle="#ff6b81";ctx.lineWidth=1;ctx.stroke();}
+ctx.font="14px sans-serif";for(const e of emotes){ctx.fillStyle="rgba(255,255,255,0.95)";ctx.beginPath();ctx.arc(e.x,e.y-8,13,0,Math.PI*2);ctx.fill();ctx.textAlign="center";ctx.fillStyle="#000";ctx.fillText(e.text,e.x,e.y-3);}
+ctx.fillStyle="#00ffcc";ctx.textAlign="left";ctx.font="bold 14px monospace";ctx.fillText(`SCORE: ${score}`,12,25);
 }
-ctx.font="14px sans-serif";
-for(const e of emotes){
-ctx.fillStyle="rgba(255,255,255,0.95)";
-ctx.beginPath();
-ctx.arc(e.x,e.y-8,13,0,Math.PI*2);
-ctx.fill();
-ctx.textAlign="center";
-ctx.fillStyle="#000";
-ctx.fillText(e.text,e.x,e.y-3);
-}
-ctx.fillStyle="#00ffcc";
-ctx.textAlign="left";
-ctx.font="bold 14px monospace";
-ctx.fillText(`SCORE: ${score}`,12,25);
-}
-function expS(){
-const d={highScore:score,glitch:false};
-document.getElementById("outC").value=btoa(unescape(encodeURIComponent(JSON.stringify(d))));
-}
+function expS(){const d={highScore:score,glitch:false};document.getElementById("outC").value=btoa(unescape(encodeURIComponent(JSON.stringify(d))));}
 function impS(){
 const code=document.getElementById("inC").value;
 try{
 const d=JSON.parse(decodeURIComponent(escape(atob(code))));
-if(d.glitch===true){
-isCheatMode=true;
-alert("⚠️ GLITCH DETECTED：チート有効化！");
-}else{
-isCheatMode=false;
-alert(`ロード完了 SCORE: ${d.highScore}`);
-}
-score=d.highScore;
-isGameOver=false;
-meteors.length=0;
-gameLoop();
+if(d.glitch===true){isCheatMode=true;alert("⚠️ GLITCH DETECTED：チート有効化！");}
+else{isCheatMode=false;alert(`ロード完了 SCORE: ${d.highScore}`);}
+score=d.highScore;isGameOver=false;meteors.length=0;gameLoop();
 }catch(e){alert("❌ 無効なコード");}
 }
 gameLoop();
