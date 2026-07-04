@@ -1,276 +1,167 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <!-- スマホでの拡大縮小を防ぎ、画面幅にフィットさせるメタタグ -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ロケット隕石サバイバル（99人対戦・モバイル対応）</title>
-    <style>
-        body { background: #111; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; user-select: none; -webkit-user-select: none; }
-        h1 { margin: 5px 0; font-size: 20px; }
-        canvas { background: #000; border: 2px solid #555; display: block; margin: 5px auto; max-width: 100%; height: auto; }
-        .ui-container { display: flex; justify-content: center; gap: 10px; max-width: 400px; margin: 5px auto; }
-        .panel { background: #222; padding: 5px; border-radius: 5px; width: 48%; font-size: 12px; }
-        h3 { margin: 5px 0; font-size: 14px; }
-        input, button { padding: 5px; margin: 3px; background: #333; color: white; border: 1px solid #555; font-size: 12px; }
-        button:hover { background: #444; cursor: pointer; }
-        
-        /* 💬 エモートボタンの調整 */
-        .emote-container { margin: 5px 0; }
-        .emote-btn { font-size: 20px; padding: 5px 12px; margin: 0 3px; border-radius: 5px; }
-        
-        /* 🕹️ モバイル用移動ボタンの配置 */
-        .controller { display: flex; justify-content: space-between; max-width: 360px; margin: 15px auto; padding: 0 10px; }
-        .ctrl-btn { width: 80px; height: 60px; background: #222; border: 2px solid #fff; color: white; font-size: 24px; font-weight: bold; border-radius: 10px; touch-action: manipulation; }
-        .ctrl-btn:active { background: #555; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ロケット隕石サバイバル</title>
+<style>
+body{background:#0a0a12;color:#e0e0ff;font-family:sans-serif;text-align:center;margin:0;padding:10px;user-select:none;-webkit-user-select:none;}
+h1{margin:0;font-size:20px;color:#00d2ff;}
+canvas{background:#020208;border:2px solid #00d2ff;display:block;margin:5px auto;max-width:100%;height:auto;border-radius:8px;}
+.controller{display:flex;justify-content:space-between;max-width:360px;margin:5px auto;gap:10px;}
+.ctrl-btn{flex:1;height:50px;background:rgba(255,255,255,0.05);border:1px solid #00d2ff;color:#00d2ff;font-size:22px;border-radius:12px;touch-action:manipulation;}
+.emote-btn{font-size:18px;padding:5px 12px;margin:0 3px;border-radius:8px;background:#151525;border:1px solid #444;color:white;}
+.ui-container{display:flex;justify-content:center;gap:10px;max-width:400px;margin:5px auto;}
+.panel{background:#111122;border:1px solid #333;padding:5px;border-radius:8px;width:48%;box-sizing:border-box;}
+h3{margin:0;font-size:12px;color:#aaa;}
+input{width:100%;padding:4px;background:#05050a;color:#00ffcc;border:1px solid #444;border-radius:4px;font-size:11px;box-sizing:border-box;text-align:center;}
+button{margin-top:4px;width:100%;padding:4px;background:#22223b;color:#fff;border:1px solid #555;border-radius:4px;font-size:11px;font-weight:bold;}
+</style>
 </head>
 <body>
-
-    <h1>🚀 隕石サバイバル 🛸</h1>
-    <div style="font-size: 14px;">生存人数: <span id="aliveCount" style="color: #ff4757; font-size: 20px; font-weight: bold;">100</span> / 100人</div>
-
-    <canvas id="gameCanvas" width="400" height="430"></canvas>
-
-    <!-- 🕹️ スマホ用コントローラー（画面タッチで移動） -->
-    <div class="controller">
-        <button class="ctrl-btn" id="btnLeft">◀</button>
-        <button class="ctrl-btn" id="btnRight">▶</button>
-    </div>
-
-    <!-- 💬 リアクションボタン -->
-    <div class="emote-container">
-        <button class="emote-btn" onclick="sendPlayerEmote('🔥')">🔥</button>
-        <button class="emote-btn" onclick="sendPlayerEmote('👍')">👍</button>
-        <button class="emote-btn" onclick="sendPlayerEmote('😀')">😀</button>
-    </div>
-
-    <div class="ui-container">
-        <!-- セーブコード出力 -->
-        <div class="panel">
-            <h3>💾 セーブ出力</h3>
-            <button onclick="exportSave()">生成</button>
-            <br>
-            <input type="text" id="outputCode" readonly style="width: 90%;">
-        </div>
-
-        <!-- セーブコード入力 -->
-        <div class="panel">
-            <h3>🔑 ロード</h3>
-            <input type="text" id="inputCode" placeholder="ここに貼り付け" style="width: 90%;">
-            <br>
-            <button onclick="importSave()">ロード</button>
-        </div>
-    </div>
-
+<h1>🚀 METEOR SURVIVAL</h1>
+<div>SURVIVORS: <span id="aliveCount" style="color:#ff4757;font-size:20px;font-weight:bold;">100</span> / 100</div>
+<canvas id="gameCanvas" width="400" height="430"></canvas>
+<div class="controller">
+<button class="ctrl-btn" id="bL">◀</button>
+<button class="ctrl-btn" id="bR">▶</button>
+</div>
+<div style="margin:5px 0;">
+<button class="emote-btn" onclick="sendEmote('🔥')">🔥</button>
+<button class="emote-btn" onclick="sendEmote('👍')">👍</button>
+<button class="emote-btn" onclick="sendEmote('😀')">😀</button>
+</div>
+<div class="ui-container">
+<div class="panel">
+<h3>Save</h3>
+<input type="text" id="outC" readonly placeholder="ーーー">
+<button onclick="expS()">生成</button>
+</div>
+<div class="panel">
+<h3>Load</h3>
+<input type="text" id="inC" placeholder="貼付">
+<button onclick="impS()">ロード</button>
+</div>
+</div>
 <script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-// ゲーム状態
-let score = 0;
-let isGameOver = false;
-let isCheatMode = false; 
-
-// プレイヤー
-const player = { x: 185, y: 370, size: 30, speed: 5 };
-
-// 配列データ
-const emotes = [];
-const meteors = [];
-const meteorSpeed = 4;
-
-// 99人のBotシステム
-let botSurvivalRates = []; 
-for (let i = 0; i < 99; i++) {
-    botSurvivalRates.push(Math.random() * 0.005 + 0.002); 
+const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");
+let score=0,isGameOver=false,isCheatMode=false;
+const player={x:185,y:370,size:28,speed:5},visibleBots=[],emotes=[],meteors=[],meteorSpeed=3.5;
+for(let i=0;i<105;i++)visibleBots.push({id:i,x:Math.random()*370,y:370,targetX:Math.random()*370,speed:1+Math.random()*2.5});
+let botSurvivalRates=[];
+for(let i=0;i<99;i++)botSurvivalRates.push(Math.random()*0.005+0.002);
+const controls={left:false,right:false};
+window.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")controls.left=true;if(e.key==="ArrowRight")controls.right=true;});
+window.addEventListener("keyup",e=>{if(e.key==="ArrowLeft")controls.left=false;if(e.key==="ArrowRight")controls.right=false;});
+const bL=document.getElementById("bL"),bR=document.getElementById("bR");
+bL.addEventListener("touchstart",e=>{e.preventDefault();controls.left=true;});
+bL.addEventListener("touchend",()=>controls.left=false);
+bL.addEventListener("mousedown",()=>controls.left=true);
+bL.addEventListener("mouseup",()=>controls.left=false);
+bR.addEventListener("touchstart",e=>{e.preventDefault();controls.right=true;});
+bR.addEventListener("touchend",()=>controls.right=false);
+bR.addEventListener("mousedown",()=>controls.right=true);
+bR.addEventListener("mouseup",()=>controls.right=false);
+function gameLoop(){if(!isGameOver){updateGame();drawGame();requestAnimationFrame(gameLoop);}}
+function sendEmote(emoji){if(isGameOver)return;emotes.push({text:emoji,x:player.x+player.size/2,y:player.y-10,timer:60});}
+function updateGame(){
+score++;
+if(controls.left&&player.x > 0)player.x-=player.speed;
+if(controls.right&&player.x < canvas.width-player.size)player.x+=player.speed;
+for(let b of visibleBots){
+if(Math.abs(b.x-b.targetX)<5)b.targetX=Math.random()*(canvas.width-player.size);
+if(b.x<b.targetX)b.x+=b.speed;
+if(b.x>b.targetX)b.x-=b.speed;
 }
-
-// 📱 操作フラグ（キーボードとスマホの両方に対応）
-const controls = { left: false, right: false };
-
-// PCキーボード用イベント
-window.addEventListener("keydown", e => {
-    if (e.key === "ArrowLeft") controls.left = true;
-    if (e.key === "ArrowRight") controls.right = true;
-});
-window.addEventListener("keyup", e => {
-    if (e.key === "ArrowLeft") controls.left = false;
-    if (e.key === "ArrowRight") controls.right = false;
-});
-
-// スマホ画面タッチ用イベント
-const btnLeft = document.getElementById("btnLeft");
-const btnRight = document.getElementById("btnRight");
-
-btnLeft.addEventListener("touchstart", (e) => { e.preventDefault(); controls.left = true; });
-btnLeft.addEventListener("touchend", () => controls.left = false);
-btnLeft.addEventListener("mousedown", () => controls.left = true); // PCクリック確認用
-btnLeft.addEventListener("mouseup", () => controls.left = false);
-
-btnRight.addEventListener("touchstart", (e) => { e.preventDefault(); controls.right = true; });
-btnRight.addEventListener("touchend", () => controls.right = false);
-btnRight.addEventListener("mousedown", () => controls.right = true);
-btnRight.addEventListener("mouseup", () => controls.right = false);
-
-// 🎮 ゲームメインループ
-function gameLoop() {
-    if (!isGameOver) {
-        updateGame();
-        drawGame();
-        requestAnimationFrame(gameLoop);
-    }
+if(Math.random()<0.025)meteors.push({x:Math.random()*(canvas.width-20)+10,y:-20,radius:5+Math.random()*5});
+for(let i=meteors.length-1;i>=0;i--){
+meteors[i].y+=meteorSpeed;
+if(!isCheatMode){
+let dX=Math.abs(meteors[i].x-(player.x+player.size/2)),dY=Math.abs(meteors[i].y-(player.y+player.size/2));
+if(dX<(player.size/2+meteors[i].radius)&&dY<(player.size/2+meteors[i].radius)){
+isGameOver=true;
+alert("💥ゲームオーバー！\nSCORE: "+score);
 }
-
-// 💬 エモート送信
-function sendPlayerEmote(emoji) {
-    if (isGameOver) return;
-    emotes.push({
-        text: emoji,
-        x: player.x + (player.size / 2),
-        y: player.y - 10,
-        timer: 60 
-    });
 }
-
-// 🔄 データ更新
-function updateGame() {
-    score++;
-
-    // プレイヤー移動処理
-    if (controls.left && player.x > 0) player.x -= player.speed;
-    if (controls.right && player.x < canvas.width - player.size) player.x += player.speed;
-
-    // 隕石生成
-    if (Math.random() < 0.05) {
-        meteors.push({
-            x: Math.random() * (canvas.width - 20),
-            y: -20,
-            size: 20 + Math.random() * 20
-        });
-    }
-
-    // 隕石の判定
-    for (let i = meteors.length - 1; i >= 0; i--) {
-        meteors[i].y += meteorSpeed;
-
-        if (!isCheatMode) { 
-            if (meteors[i].x < player.x + player.size &&
-                meteors[i].x + meteors[i].size > player.x &&
-                meteors[i].y < player.y + player.size &&
-                meteors[i].y + meteors[i].size > player.y) {
-                isGameOver = true;
-                alert("💥 隕石に衝突しました！ゲームオーバー！\nスコア: " + score);
-            }
-        }
-
-        if (meteors[i].y > canvas.height) {
-            meteors.splice(i, 1);
-        }
-    }
-
-    // Bot脱落
-    let currentAlive = 1; 
-    for (let i = 0; i < botSurvivalRates.length; i++) {
-        if (Math.random() < botSurvivalRates[i] * (1 + score * 0.0005)) {
-            botSurvivalRates.splice(i, 1);
-            i--;
-        } else {
-            currentAlive++;
-            if (Math.random() < 0.002) {
-                const emojis = ['🔥', '👍', '😀'];
-                emotes.push({
-                    text: emojis[Math.floor(Math.random() * emojis.length)],
-                    x: Math.random() * (canvas.width - 40) + 20,
-                    y: Math.random() * (canvas.height - 150) + 50, 
-                    timer: 45
-                });
-            }
-        }
-    }
-    document.getElementById("aliveCount").innerText = currentAlive;
-
-    // エモート浮上
-    for (let i = emotes.length - 1; i >= 0; i--) {
-        emotes[i].timer--;
-        emotes[i].y -= 0.5; 
-        if (emotes[i].timer <= 0) {
-            emotes.splice(i, 1);
-        }
-    }
+if(meteors[i].y>canvas.height+20)meteors.splice(i,1);
 }
-
-// 🎨 画面描画
-function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (isCheatMode) {
-        ctx.fillStyle = "rgba(0, 255, 0, 0.1)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    // 自機
-    ctx.fillStyle = isCheatMode ? "#00ff00" : "#0097e6"; 
-    ctx.fillRect(player.x, player.y, player.size, player.size);
-
-    // 隕石
-    ctx.fillStyle = "#e84118";
-    for (const m of meteors) {
-        ctx.fillRect(m.x, m.y, m.size, m.size);
-    }
-
-    // エモート描画
-    ctx.font = "16px sans-serif";
-    for (const e of emotes) {
-        ctx.fillStyle = "white";
-        ctx.beginPath();
-        ctx.arc(e.x, e.y - 8, 14, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.textAlign = "center";
-        ctx.fillText(e.text, e.x, e.y - 3);
-    }
-
-    // スコア
-    ctx.fillStyle = "white";
-    ctx.textAlign = "left";
-    ctx.font = "16px sans-serif";
-    ctx.fillText(`SCORE: ${score}`, 10, 25);
+let currentAlive=1;
+for(let i=0;i<botSurvivalRates.length;i++){
+if(Math.random()<botSurvivalRates[i]*(1+score*0.0005)){
+botSurvivalRates.splice(i,1);
+i--;
+}else{
+currentAlive++;
+if(Math.random()<0.0001&&visibleBots.length>0){
+const tB=visibleBots[Math.floor(Math.random()*visibleBots.length)];
+emotes.push({text:['🔥','👍','😀'][Math.floor(Math.random()*3)],x:tB.x+player.size/2,y:tB.y-10,timer:45});
 }
-
-// 💾 セーブ生成
-function exportSave() {
-    const data = { highScore: score, glitch: false };
-    const jsonStr = JSON.stringify(data);
-    const encoded = btoa(unescape(encodeURIComponent(jsonStr))); 
-    document.getElementById("outputCode").value = encoded;
 }
-
-// 🔑 セーブロード
-function importSave() {
-    const code = document.getElementById("inputCode").value;
-    try {
-        const decodedStr = decodeURIComponent(escape(atob(code))); 
-        const data = JSON.parse(decodedStr);
-
-        if (data.glitch === true) {
-            isCheatMode = true;
-            alert("⚠️ グリッチ検出：チートモードが有効化されました！");
-        } else {
-            isCheatMode = false;
-            alert(`データをロードしました。スコア: ${data.highScore}`);
-        }
-
-        score = data.highScore;
-        isGameOver = false;
-        meteors.length = 0;
-        gameLoop();
-
-    } catch (e) {
-        alert("❌ 無効なセーブコードです。");
-    }
 }
-
+let targetV=Math.floor((currentAlive/100)*105);
+while(visibleBots.length>targetV&&visibleBots.length>0)visibleBots.pop();
+document.getElementById("aliveCount").innerText=currentAlive;
+for(let i=emotes.length-1;i>=0;i--){
+emotes[i].timer--;
+emotes[i].y-=0.6;
+if(emotes[i].timer<=0)emotes.splice(i,1);
+}
+}
+function drawGame(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+if(isCheatMode){ctx.fillStyle="rgba(0,255,150,0.08)";ctx.fillRect(0,0,canvas.width,canvas.height);}
+ctx.fillStyle="rgba(255,255,255,0.08)";
+for(const b of visibleBots)ctx.fillRect(b.x,b.y,player.size,player.size);
+ctx.fillStyle=isCheatMode?"#00ffcc":"#00d2ff";
+ctx.fillRect(player.x,player.y,player.size,player.size);
+ctx.strokeStyle=isCheatMode?"#00ff00":"#ffffff";
+ctx.lineWidth=2;
+ctx.strokeRect(player.x,player.y,player.size,player.size);
+for(const m of meteors){
+ctx.beginPath();
+ctx.arc(m.x,m.y,m.radius,0,Math.PI*2);
+ctx.fillStyle="#ff4757";
+ctx.fill();
+ctx.strokeStyle="#ff6b81";
+ctx.lineWidth=1;
+ctx.stroke();
+}
+ctx.font="14px sans-serif";
+for(const e of emotes){
+ctx.fillStyle="rgba(255,255,255,0.95)";
+ctx.beginPath();
+ctx.arc(e.x,e.y-8,13,0,Math.PI*2);
+ctx.fill();
+ctx.textAlign="center";
+ctx.fillStyle="#000";
+ctx.fillText(e.text,e.x,e.y-3);
+}
+ctx.fillStyle="#00ffcc";
+ctx.textAlign="left";
+ctx.font="bold 14px monospace";
+ctx.fillText(`SCORE: ${score}`,12,25);
+}
+function expS(){
+const d={highScore:score,glitch:false};
+document.getElementById("outC").value=btoa(unescape(encodeURIComponent(JSON.stringify(d))));
+}
+function impS(){
+const code=document.getElementById("inC").value;
+try{
+const d=JSON.parse(decodeURIComponent(escape(atob(code))));
+if(d.glitch===true){
+isCheatMode=true;
+alert("⚠️ GLITCH DETECTED：チート有効化！");
+}else{
+isCheatMode=false;
+alert(`ロード完了 SCORE: ${d.highScore}`);
+}
+score=d.highScore;
+isGameOver=false;
+meteors.length=0;
+gameLoop();
+}catch(e){alert("❌ 無効なコード");}
+}
 gameLoop();
 </script>
 </body>
